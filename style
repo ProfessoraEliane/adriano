@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Black Friday 2025 - DJ Drico Eventos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: linear-gradient(135deg, #111 60%, #ffb700 100%);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
+      background: rgba(0,0,0,0.85);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px #0008;
+      padding: 32px 24px 24px 24px;
+      text-align: center;
+    }
+    h1 {
+      color: #ffb700;
+      margin-bottom: 8px;
+      font-size: 2.2rem;
+    }
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 24px;
+      color: #fff;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    input {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 1rem;
+      outline: none;
+    }
+    button {
+      background: #ffb700;
+      color: #111;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #ffd700;
+    }
+    .roleta-container {
+      margin: 32px 0 16px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .roleta {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 8px solid #ffb700;
+      background: conic-gradient(
+        #ffb700 0% 10%,
+        #fff 10% 30%,
+        #ffb700 30% 40%,
+        #fff 40% 60%,
+        #ffb700 60% 70%,
+        #fff 70% 90%,
+        #ffb700 90% 100%
+      );
+      position: relative;
+      transition: transform 3s cubic-bezier(.17,.67,.83,.67);
+      box-shadow: 0 4px 24px #0006;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .roleta-label {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: #111;
+      font-size: 1.1rem;
+      font-weight: bold;
+      pointer-events: none;
+    }
+    .seta {
+      width: 0; height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 28px solid #ffb700;
+      margin-bottom: 8px;
+    }
+    .voucher {
+      margin-top: 18px;
+      background: #222;
+      color: #ffb700;
+      padding: 10px 0;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      font-weight: bold;
+      display: none;
+    }
+    .desconto {
+      font-size: 1.3rem;
+      color: #ffb700;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>BLACK FRIDAY 2025</h1>
+    <h2>DJ DRICO EVENTOS<br>Cadastre-se e gire a roleta para ganhar até <span style="color:#ffb700">50% de desconto!</span></h2>
+    <form id="cadastroForm">
+      <input type="text" id="nome" placeholder="Nome completo" required>
+      <input type="email" id="email" placeholder="E-mail" required>
+      <input type="tel" id="telefone" placeholder="Telefone" required>
+      <button type="submit">Cadastrar e Girar Roleta</button>
+    </form>
+    <div class="roleta-container" style="display:none;">
+      <div class="seta"></div>
+      <div class="roleta" id="roleta">
+        <span class="roleta-label" id="roletaLabel">Gire!</span>
+      </div>
+      <button id="girarBtn" style="margin-top:18px;">Girar Roleta</button>
+      <div class="desconto" id="desconto"></div>
+      <div class="voucher" id="voucher"></div>
+    </div>
+  </div>
+  <script>
+    const cadastroForm = document.getElementById('cadastroForm');
+    const roletaContainer = document.querySelector('.roleta-container');
+    const roleta = document.getElementById('roleta');
+    const roletaLabel = document.getElementById('roletaLabel');
+    const girarBtn = document.getElementById('girarBtn');
+    const descontoDiv = document.getElementById('desconto');
+    const voucherDiv = document.getElementById('voucher');
+
+    // Prêmios da roleta (1 chance em 50 para 50%)
+    const premios = [
+      { texto: '50% OFF', valor: 50, chance: 1 },
+      { texto: '30% OFF', valor: 30, chance: 5 },
+      { texto: '20% OFF', valor: 20, chance: 10 },
+      { texto: '10% OFF', valor: 10, chance: 34 }
+    ];
+
+    function sortearPremio() {
+      // Gera um número de 1 a 50
+      const n = Math.floor(Math.random() * 50) + 1;
+      if (n === 1) return premios[0]; // 1/50 para 50%
+      if (n <= 6) return premios[1]; // 5/50 para 30%
+      if (n <= 16) return premios[2]; // 10/50 para 20%
+      return premios[3]; // 34/50 para 10%
+    }
+
+    function gerarVoucher() {
+      // Gera um código aleatório de 8 caracteres
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = '';
+      for (let i = 0; i < 8; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    cadastroForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      // Simula cadastro
+      cadastroForm.style.display = 'none';
+      roletaContainer.style.display = 'flex';
+      descontoDiv.textContent = '';
+      voucherDiv.style.display = 'none';
+      roletaLabel.textContent = 'Gire!';
+      roleta.style.transform = 'rotate(0deg)';
+    });
+
+    girarBtn.addEventListener('click', function() {
+      // Sorteia prêmio
+      const premio = sortearPremio();
+      // Gira a roleta (animação fake)
+      const angulos = { 50: 45, 30: 135, 20: 225, 10: 315 };
+      const rotacao = 1440 + (angulos[premio.valor] || 0); // 4 voltas + setor
+      roleta.style.transition = 'transform 3s cubic-bezier(.17,.67,.83,.67)';
+      roleta.style.transform = `rotate(${rotacao}deg)`;
+      roletaLabel.textContent = '';
+      descontoDiv.textContent = '';
+      voucherDiv.style.display = 'none';
+      girarBtn.disabled = true;
+      setTimeout(() => {
+        descontoDiv.textContent = `Parabéns! Você ganhou ${premio.texto}`;
+        // Gera voucher
+        const voucher = gerarVoucher();
+        voucherDiv.textContent = `Seu voucher: ${voucher} (válido por 7 dias)`;
+        voucherDiv.style.display = 'block';
+        girarBtn.disabled = false;
+      }, 3200);
+    });
+  </script>
+</body>
+</html>
