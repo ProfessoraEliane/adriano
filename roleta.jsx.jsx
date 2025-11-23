@@ -6,6 +6,9 @@ function App() {
   const [discount, setDiscount] = React.useState(null);
   const [voucher, setVoucher] = React.useState('');
   const [expiryDate, setExpiryDate] = React.useState('');
+  
+  // NOVO: Estado para controlar mensagens de erro
+  const [errorMessage, setErrorMessage] = React.useState('');
 
   const discounts = [
     { value: '10%', color: '#FF6B6B', angle: 0 },
@@ -15,13 +18,83 @@ function App() {
     { value: '50%', color: '#F38181', angle: 288 }
   ];
 
+  // NOVO: Função para verificar se email/telefone já participou
+  // IMPORTANTE: localStorage pode ser limpo pelo usuário através das ferramentas do navegador.
+  // Para um ambiente de produção, é ALTAMENTE RECOMENDADO usar um banco de dados backend
+  // para armazenar as participações e validar no servidor, garantindo maior segurança.
+  const hasAlreadyParticipated = (email, phone) => {
+    try {
+      // Recupera a lista de participantes do localStorage
+      const participantsData = localStorage.getItem('blackfriday_participants');
+      
+      if (!participantsData) {
+        return false; // Ninguém participou ainda
+      }
+
+      const participants = JSON.parse(participantsData);
+      
+      // Normaliza email e telefone para evitar variações (minúsculas e sem espaços)
+      const normalizedEmail = email.toLowerCase().trim();
+      const normalizedPhone = phone.replace(/\D/g, ''); // Remove caracteres não numéricos
+      
+      // Verifica se existe alguma participação com o mesmo email OU telefone
+      return participants.some(participant => 
+        participant.email === normalizedEmail || participant.phone === normalizedPhone
+      );
+    } catch (error) {
+      console.error('Erro ao verificar participação:', error);
+      return false;
+    }
+  };
+
+  // NOVO: Função para salvar participação no localStorage
+  // NOTA: Esta é uma solução para desenvolvimento/demonstração.
+  // Em produção, use um backend com banco de dados para validação real e segura.
+  const saveParticipation = (email, phone) => {
+    try {
+      const participantsData = localStorage.getItem('blackfriday_participants');
+      const participants = participantsData ? JSON.parse(participantsData) : [];
+      
+      // Normaliza os dados antes de salvar
+      const normalizedEmail = email.toLowerCase().trim();
+      const normalizedPhone = phone.replace(/\D/g, '');
+      
+      // Adiciona nova participação
+      participants.push({
+        email: normalizedEmail,
+        phone: normalizedPhone,
+        timestamp: new Date().toISOString() // Registra quando participou
+      });
+      
+      localStorage.setItem('blackfriday_participants', JSON.stringify(participants));
+    } catch (error) {
+      console.error('Erro ao salvar participação:', error);
+    }
+  };
+
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Limpa mensagem de erro quando usuário começa a digitar
+    if (errorMessage) {
+      setErrorMessage('');
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
     if (formData.name && formData.email && formData.phone) {
+      // NOVO: Verifica se o email/telefone já participou antes de permitir girar
+      if (hasAlreadyParticipated(formData.email, formData.phone)) {
+        setErrorMessage(
+          '⚠️ Este e-mail ou telefone já participou da promoção! ' +
+          'Cada pessoa pode girar a roleta apenas uma vez.'
+        );
+        return; // Impede de avançar para o step 'spin'
+      }
+      
+      // Se não participou ainda, permite girar
+      setErrorMessage('');
       setStep('spin');
     }
   };
@@ -52,6 +125,11 @@ function App() {
       setVoucher(generateVoucher());
       setExpiryDate(getExpiryDate());
       setSpinning(false);
+      
+      // NOVO: Salva a participação no localStorage APÓS completar o spin
+      // Isso garante que só registra se o usuário realmente completou a ação
+      saveParticipation(formData.email, formData.phone);
+      
       setStep('result');
     }, 4000);
   };
@@ -78,6 +156,14 @@ function App() {
             <h2 className="text-3xl font-bold text-center mb-6 text-yellow-400">
               Cadastre-se para Girar!
             </h2>
+            
+            {/* NOVO: Exibe mensagem de erro se houver */}
+            {errorMessage && (
+              <div className="mb-4 p-4 bg-red-500 bg-opacity-20 border border-red-500 rounded-lg text-center">
+                <p className="text-red-200 font-semibold">{errorMessage}</p>
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold mb-2">Nome Completo</label>
@@ -122,6 +208,13 @@ function App() {
                 GIRAR A ROLETA! 🎰
               </button>
             </form>
+            
+            {/* NOVO: Aviso sobre política de uma tentativa */}
+            <div className="mt-6 text-center">
+              <p className="text-xs text-gray-400">
+                ℹ️ Cada e-mail e telefone pode participar apenas uma vez
+              </p>
+            </div>
           </div>
         )}
 
@@ -244,6 +337,7 @@ function App() {
                 setRotation(0);
                 setDiscount(null);
                 setVoucher('');
+                setErrorMessage('');
               }}
               className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-lg hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200"
             >
@@ -257,6 +351,9 @@ function App() {
       <footer className="bg-black bg-opacity-50 py-6 px-4 text-center mt-12 border-t border-yellow-400">
         <p className="text-sm text-gray-300">
           🎁 Promoção válida enquanto durarem os estoques | Vouchers válidos por 7 dias
+        </p>
+        <p className="text-xs text-gray-400 mt-2">
+          Cada participante pode girar a roleta apenas uma vez
         </p>
       </footer>
     </div>
