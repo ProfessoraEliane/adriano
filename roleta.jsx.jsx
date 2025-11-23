@@ -1,4 +1,3 @@
-function App() {
 const [step, setStep] = React.useState('register'); // register, spin, result
   const [formData, setFormData] = React.useState({ name: '', email: '', phone: '' });
   const [spinning, setSpinning] = React.useState(false);
