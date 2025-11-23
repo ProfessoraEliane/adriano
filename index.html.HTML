@@ -1,216 +1,305 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Black Friday 2025 - DJ Drico Eventos</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Montserrat', Arial, sans-serif;
-      background: linear-gradient(135deg, #111 60%, #ffb700 100%);
-      color: #fff;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-    }
-    .container {
-      max-width: 500px;
-      margin: 40px auto;
-      background: rgba(0,0,0,0.85);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px #0008;
-      padding: 32px 24px 24px 24px;
-      text-align: center;
-    }
-    h1 {
-      color: #ffb700;
-      margin-bottom: 8px;
-      font-size: 2.2rem;
-    }
-    h2 {
-      font-size: 1.2rem;
-      margin-bottom: 24px;
-      color: #fff;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 32px;
-    }
-    input {
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      font-size: 1rem;
-      outline: none;
-    }
-    button {
-      background: #ffb700;
-      color: #111;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      padding: 12px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background: #ffd700;
-    }
-    .roleta-container {
-      margin: 32px 0 16px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .roleta {
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      border: 8px solid #ffb700;
-      background: conic-gradient(
-        #ffb700 0% 10%,
-        #fff 10% 30%,
-        #ffb700 30% 40%,
-        #fff 40% 60%,
-        #ffb700 60% 70%,
-        #fff 70% 90%,
-        #ffb700 90% 100%
-      );
-      position: relative;
-      transition: transform 3s cubic-bezier(.17,.67,.83,.67);
-      box-shadow: 0 4px 24px #0006;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .roleta-label {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      color: #111;
-      font-size: 1.1rem;
-      font-weight: bold;
-      pointer-events: none;
-    }
-    .seta {
-      width: 0; height: 0;
-      border-left: 18px solid transparent;
-      border-right: 18px solid transparent;
-      border-bottom: 28px solid #ffb700;
-      margin-bottom: 8px;
-    }
-    .voucher {
-      margin-top: 18px;
-      background: #222;
-      color: #ffb700;
-      padding: 10px 0;
-      border-radius: 8px;
-      font-size: 1.1rem;
-      letter-spacing: 2px;
-      font-weight: bold;
-      display: none;
-    }
-    .desconto {
-      font-size: 1.3rem;
-      color: #ffb700;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>BLACK FRIDAY 2025</h1>
-    <h2>DJ DRICO EVENTOS<br>Cadastre-se e gire a roleta para ganhar até <span style="color:#ffb700">50% de desconto!</span></h2>
-    <form id="cadastroForm">
-      <input type="text" id="nome" placeholder="Nome completo" required>
-      <input type="email" id="email" placeholder="E-mail" required>
-      <input type="tel" id="telefone" placeholder="Telefone" required>
-      <button type="submit">Cadastrar e Girar Roleta</button>
-    </form>
-    <div class="roleta-container" style="display:none;">
-      <div class="seta"></div>
-      <div class="roleta" id="roleta">
-        <span class="roleta-label" id="roletaLabel">Gire!</span>
-      </div>
-      <button id="girarBtn" style="margin-top:18px;">Girar Roleta</button>
-      <div class="desconto" id="desconto"></div>
-      <div class="voucher" id="voucher"></div>
-    </div>
-  </div>
-  <script>
-    const cadastroForm = document.getElementById('cadastroForm');
-    const roletaContainer = document.querySelector('.roleta-container');
-    const roleta = document.getElementById('roleta');
-    const roletaLabel = document.getElementById('roletaLabel');
-    const girarBtn = document.getElementById('girarBtn');
-    const descontoDiv = document.getElementById('desconto');
-    const voucherDiv = document.getElementById('voucher');
+const [step, setStep] = React.useState('register'); // register, spin, result
+  const [formData, setFormData] = React.useState({ name: '', email: '', phone: '' });
+  const [spinning, setSpinning] = React.useState(false);
+  const [rotation, setRotation] = React.useState(0);
+  const [discount, setDiscount] = React.useState(null);
+  const [voucher, setVoucher] = React.useState('');
+  const [expiryDate, setExpiryDate] = React.useState('');
+  const [errorMessage, setErrorMessage] = React.useState(''); // NOVO: Para mostrar erros
 
-    // Prêmios da roleta (1 chance em 50 para 50%)
-    const premios = [
-      { texto: '50% OFF', valor: 50, chance: 1 },
-      { texto: '30% OFF', valor: 30, chance: 5 },
-      { texto: '20% OFF', valor: 20, chance: 10 },
-      { texto: '10% OFF', valor: 10, chance: 34 }
-    ];
+  const discounts = [
+    { value: '10%', color: '#FF6B6B', angle: 0 },
+    { value: '15%', color: '#4ECDC4', angle: 72 },
+    { value: '20%', color: '#FFE66D', angle: 144 },
+    { value: '30%', color: '#95E1D3', angle: 216 },
+    { value: '50%', color: '#F38181', angle: 288 }
+  ];
 
-    function sortearPremio() {
-      // Gera um número de 1 a 50
-      const n = Math.floor(Math.random() * 50) + 1;
-      if (n === 1) return premios[0]; // 1/50 para 50%
-      if (n <= 6) return premios[1]; // 5/50 para 30%
-      if (n <= 16) return premios[2]; // 10/50 para 20%
-      return premios[3]; // 34/50 para 10%
-    }
+  // NOVO: Função para verificar se email/telefone já foi usado
+  // NOTA: localStorage pode ser limpo pelo usuário. Para produção, use um banco de dados backend!
+  const checkIfAlreadySpun = (email, phone) => {
+    const usedCombinations = JSON.parse(localStorage.getItem('rouletteSpins') || '[]');
+    return usedCombinations.some(
+      entry => entry.email === email.toLowerCase() || entry.phone === phone
+    );
+  };
 
-    function gerarVoucher() {
-      // Gera um código aleatório de 8 caracteres
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      let code = '';
-      for (let i = 0; i < 8; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+  // NOVO: Função para salvar email/telefone após girar
+  const saveSpinRecord = (email, phone) => {
+    const usedCombinations = JSON.parse(localStorage.getItem('rouletteSpins') || '[]');
+    usedCombinations.push({
+      email: email.toLowerCase(),
+      phone: phone,
+      timestamp: new Date().toISOString()
+    });
+    localStorage.setItem('rouletteSpins', JSON.stringify(usedCombinations));
+  };
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrorMessage(''); // Limpa erro ao digitar
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (formData.name && formData.email && formData.phone) {
+      // MODIFICADO: Verifica se já girou antes de permitir
+      if (checkIfAlreadySpun(formData.email, formData.phone)) {
+        setErrorMessage('❌ Este e-mail ou telefone já participou da promoção!');
+        return;
       }
-      return code;
+      setErrorMessage('');
+      setStep('spin');
     }
+  };
 
-    cadastroForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      // Simula cadastro
-      cadastroForm.style.display = 'none';
-      roletaContainer.style.display = 'flex';
-      descontoDiv.textContent = '';
-      voucherDiv.style.display = 'none';
-      roletaLabel.textContent = 'Gire!';
-      roleta.style.transform = 'rotate(0deg)';
-    });
+  const generateVoucher = () => {
+    return 'BF2025-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+  };
 
-    girarBtn.addEventListener('click', function() {
-      // Sorteia prêmio
-      const premio = sortearPremio();
-      // Gira a roleta (animação fake)
-      const angulos = { 50: 45, 30: 135, 20: 225, 10: 315 };
-      const rotacao = 1440 + (angulos[premio.valor] || 0); // 4 voltas + setor
-      roleta.style.transition = 'transform 3s cubic-bezier(.17,.67,.83,.67)';
-      roleta.style.transform = `rotate(${rotacao}deg)`;
-      roletaLabel.textContent = '';
-      descontoDiv.textContent = '';
-      voucherDiv.style.display = 'none';
-      girarBtn.disabled = true;
-      setTimeout(() => {
-        descontoDiv.textContent = `Parabéns! Você ganhou ${premio.texto}`;
-        // Gera voucher
-        const voucher = gerarVoucher();
-        voucherDiv.textContent = `Seu voucher: ${voucher} (válido por 7 dias)`;
-        voucherDiv.style.display = 'block';
-        girarBtn.disabled = false;
-      }, 3200);
-    });
-  </script>
-</body>
-</html>
+  const getExpiryDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    return date.toLocaleDateString('pt-BR');
+  };
+
+  const spinWheel = () => {
+    if (spinning) return;
+
+    setSpinning(true);
+    const randomIndex = Math.floor(Math.random() * discounts.length);
+    const selectedDiscount = discounts[randomIndex];
+    const spins = 5;
+    const finalRotation = (360 * spins) + (360 - selectedDiscount.angle) + (Math.random() * 50 - 25);
+
+    setRotation(finalRotation);
+
+    setTimeout(() => {
+      setDiscount(selectedDiscount.value);
+      setVoucher(generateVoucher());
+      setExpiryDate(getExpiryDate());
+      setSpinning(false);
+      // NOVO: Salva o registro após girar com sucesso
+      saveSpinRecord(formData.email, formData.phone);
+      setStep('result');
+    }, 4000);
+  };
+
+  const copyVoucher = () => {
+    navigator.clipboard.writeText(voucher);
+    alert('Voucher copiado!');
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black text-white">
+      {/* Header */}
+      <header className="bg-black bg-opacity-50 py-6 px-4 text-center border-b-4 border-yellow-400">
+        <h1 className="text-4xl md:text-6xl font-bold text-yellow-400 mb-2 animate-pulse">
+          🔥 BLACK FRIDAY 2025 🔥
+        </h1>
+        <p className="text-xl md:text-2xl text-white">Gire a Roleta e Ganhe Até 50% OFF!</p>
+      </header>
+
+      <main className="container mx-auto px-4 py-12">
+        {/* Registration Form */}
+        {step === 'register' && (
+          <div className="max-w-md mx-auto bg-white bg-opacity-10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-yellow-400">
+            <h2 className="text-3xl font-bold text-center mb-6 text-yellow-400">
+              Cadastre-se para Girar!
+            </h2>
+            
+            {/* NOVO: Mensagem de erro */}
+            {errorMessage && (
+              <div className="bg-red-500 bg-opacity-20 border-2 border-red-500 rounded-lg p-4 mb-4 text-center">
+                <p className="text-red-200 font-semibold">{errorMessage}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-2">Nome Completo</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-gray-300 focus:border-yellow-400 focus:outline-none text-white placeholder-gray-300"
+                  placeholder="Seu nome"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">E-mail</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-gray-300 focus:border-yellow-400 focus:outline-none text-white placeholder-gray-300"
+                  placeholder="seu@email.com"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Telefone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 rounded-lg bg-white bg-opacity-20 border border-gray-300 focus:border-yellow-400 focus:outline-none text-white placeholder-gray-300"
+                  placeholder="(00) 0000-0000"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold py-4 rounded-lg hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
+              >
+                GIRAR A ROLETA! 🎰
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Spin Wheel */}
+        {step === 'spin' && (
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-8 text-yellow-400">
+              Olá, {formData.name}! 🎉
+            </h2>
+            <p className="text-xl mb-8">Clique no botão para girar a roleta!</p>
+
+            <div className="relative inline-block mb-8">
+              {/* Arrow Pointer */}
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4 z-10">
+                <div className="w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-red-500"></div>
+              </div>
+
+              {/* Wheel */}
+              <div className="relative w-80 h-80 mx-auto">
+                <svg
+                  viewBox="0 0 200 200"
+                  className="w-full h-full transform transition-transform duration-4000 ease-out"
+                  style={{ transform: `rotate(${rotation}deg)` }}
+                >
+                  {discounts.map((item, index) => {
+                    const startAngle = item.angle;
+                    const endAngle = startAngle + 72;
+                    const startRad = (startAngle - 90) * Math.PI / 180;
+                    const endRad = (endAngle - 90) * Math.PI / 180;
+                    const x1 = 100 + 90 * Math.cos(startRad);
+                    const y1 = 100 + 90 * Math.sin(startRad);
+                    const x2 = 100 + 90 * Math.cos(endRad);
+                    const y2 = 100 + 90 * Math.sin(endRad);
+                    const textAngle = startAngle + 36;
+                    const textRad = (textAngle - 90) * Math.PI / 180;
+                    const textX = 100 + 60 * Math.cos(textRad);
+                    const textY = 100 + 60 * Math.sin(textRad);
+
+                    return (
+                      <g key={index}>
+                        <path
+                          d={`M 100 100 L ${x1} ${y1} A 90 90 0 0 1 ${x2} ${y2} Z`}
+                          fill={item.color}
+                          stroke="#fff"
+                          strokeWidth="2"
+                        />
+                        <text
+                          x={textX}
+                          y={textY}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          className="font-bold text-xl fill-black"
+                          transform={`rotate(${textAngle}, ${textX}, ${textY})`}
+                        >
+                          {item.value}
+                        </text>
+                      </g>
+                    );
+                  })}
+                  <circle cx="100" cy="100" r="15" fill="#fff" stroke="#000" strokeWidth="2" />
+                </svg>
+              </div>
+            </div>
+
+            <button
+              onClick={spinWheel}
+              disabled={spinning}
+              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-bold py-4 px-12 rounded-full text-2xl hover:from-yellow-500 hover:to-orange-600 transform hover:scale-110 transition-all duration-200 shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {spinning ? 'GIRANDO... 🎰' : 'GIRAR AGORA! 🎯'}
+            </button>
+          </div>
+        )}
+
+        {/* Result */}
+        {step === 'result' && (
+          <div className="max-w-md mx-auto bg-white bg-opacity-10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border-4 border-yellow-400 text-center">
+            <div className="mb-6">
+              <div className="text-6xl mb-4">🎉</div>
+              <h2 className="text-4xl font-bold text-yellow-400 mb-2">
+                PARABÉNS!
+              </h2>
+              <p className="text-2xl mb-4">Você ganhou</p>
+              <div className="text-7xl font-bold text-green-400 mb-6">
+                {discount}
+              </div>
+              <p className="text-xl mb-2">de desconto!</p>
+            </div>
+
+            <div className="bg-black bg-opacity-50 rounded-xl p-6 mb-6">
+              <p className="text-sm text-gray-300 mb-2">Seu Voucher:</p>
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <code className="text-2xl font-mono font-bold text-yellow-400 bg-gray-800 px-4 py-2 rounded">
+                  {voucher}
+                </code>
+                <button
+                  onClick={copyVoucher}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold"
+                >
+                  📋 Copiar
+                </button>
+              </div>
+              <p className="text-sm text-red-300">
+                ⏰ Válido até: <span className="font-bold">{expiryDate}</span>
+              </p>
+              <p className="text-xs text-gray-400 mt-2">(7 dias a partir de hoje)</p>
+            </div>
+
+            <div className="bg-yellow-400 bg-opacity-20 rounded-lg p-4 mb-6">
+              <p className="text-sm">
+                ✉️ Enviamos o voucher para: <br />
+                <span className="font-bold">{formData.email}</span>
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setStep('register');
+                setFormData({ name: '', email: '', phone: '' });
+                setRotation(0);
+                setDiscount(null);
+                setVoucher('');
+                setErrorMessage('');
+              }}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-lg hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200"
+            >
+              Voltar ao Início
+            </button>
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-black bg-opacity-50 py-6 px-4 text-center mt-12 border-t border-yellow-400">
+        <p className="text-sm text-gray-300">
+          🎁 Promoção válida enquanto durarem os estoques | Vouchers válidos por 7 dias
+        </p>
+        <p className="text-xs text-gray-400 mt-2">
+          ⚠️ Cada e-mail e telefone pode participar apenas uma vez
+        </p>
+      </footer>
+    </div>
+  );
+}
